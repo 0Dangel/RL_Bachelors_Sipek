@@ -22,9 +22,8 @@ class TaxiEnv:
 
     def getLastState(self):
         return self.lastState[0]
-
-
-    def getMoves(self):
+    
+    def getRandomMove(self):
         return self.env.action_space.sample()
 
 
@@ -33,8 +32,8 @@ class TaxiEnv:
         (next_state, reward, done, info1, info2) = self.env.step(action)
         if(reward == -10):
             self.penalties += 1
-        
-        s=self.env.render()
-        print(s)
+        if(self.print):
+            s=self.env.render()
+            print(s)
 
         return (next_state, reward, done, info1, info2) 
