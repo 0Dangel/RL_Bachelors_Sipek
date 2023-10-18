@@ -33,7 +33,10 @@ class TaxiEnv:
         if(reward == -10):
             self.penalties += 1
         if(self.print):
-            s=self.env.render()
-            print(s)
+            self.printCurState()
 
         return (next_state, reward, done, info1, info2) 
+    
+    def printCurState(self):
+        s=self.env.render()
+        print(s)
