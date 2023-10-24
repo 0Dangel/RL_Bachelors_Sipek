@@ -40,3 +40,7 @@ class TaxiEnv:
     def printCurState(self):
         s=self.env.render()
         print(s)
+
+    def setCurState(self,stateNum):
+        #self.env.
+        return
