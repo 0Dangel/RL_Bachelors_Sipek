@@ -4,7 +4,7 @@ from IPython.display import clear_output
 import numpy as np
 import random
 import seaborn as sns
-
+import math
 
 class TaxiEnv:
 
@@ -22,6 +22,17 @@ class TaxiEnv:
 
     def getLastState(self):
         return self.lastState[0]
+    
+    def getLastActionMask(self):
+        return self.lastState[1]["action_mask"]
+    
+    #Returns the "Column, Row" tuple
+    def getPos(self):
+        vysl = list(self.env.unwrapped.decode(self.getLastState(())))
+        # stav = self.getLastState()
+        # col = math.floor((stav%100)/20)
+        # row = math.floor(stav/100)
+        return(vysl[1],vysl[0])
     
     def getRandomMove(self):
         return self.env.action_space.sample()
@@ -42,5 +53,6 @@ class TaxiEnv:
         print(s)
 
     def setState(self,stateNum):
+        self.lastState[0] = stateNum
         self.env.unwrapped.s = stateNum
         self.printCurState()
