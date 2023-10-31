@@ -41,6 +41,6 @@ class TaxiEnv:
         s=self.env.render()
         print(s)
 
-    def setCurState(self,stateNum):
-        #self.env.
-        return
+    def setState(self,stateNum):
+        self.env.unwrapped.s = stateNum
+        self.printCurState()
