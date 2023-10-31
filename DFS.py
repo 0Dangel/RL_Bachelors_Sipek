@@ -24,6 +24,8 @@ print(env.lastState)
 #env.printCurState()
 
 
+env.env.unwrapped.s = 5
+
 print(info2["action_mask"])
 
 done = False
