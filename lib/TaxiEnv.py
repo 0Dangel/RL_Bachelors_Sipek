@@ -28,7 +28,8 @@ class TaxiEnv:
     
     #Returns the "Column, Row" tuple
     def getPos(self):
-        vysl = list(self.env.unwrapped.decode(self.getLastState()))
+        x = self.getLastState()
+        vysl = list(self.env.unwrapped.decode(x))
         # stav = self.getLastState()
         # col = math.floor((stav%100)/20)
         # row = math.floor(stav/100)
@@ -53,6 +54,8 @@ class TaxiEnv:
         print(s)
 
     def setState(self,stateNum):
-        self.lastState[0] = stateNum
+        pNum =self.env.P[stateNum]
+        actionMask =self.env.action_mask(stateNum)
+        self.lastState = (stateNum,{'prob' : 1.0,'action_mask':actionMask})
         self.env.unwrapped.s = stateNum
         self.printCurState()
