@@ -28,7 +28,7 @@ class TaxiEnv:
     
     #Returns the "Column, Row" tuple
     def getPos(self):
-        vysl = list(self.env.unwrapped.decode(self.getLastState(())))
+        vysl = list(self.env.unwrapped.decode(self.getLastState()))
         # stav = self.getLastState()
         # col = math.floor((stav%100)/20)
         # row = math.floor(stav/100)
