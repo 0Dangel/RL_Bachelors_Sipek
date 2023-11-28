@@ -64,8 +64,54 @@ class WSHandler(WebSocketHandler):
         self.app.ws_clients.append(self)
 
     def open(self):
-        print('Webserver: Websocket opened.')
-        self.write_message('Server ready.')
+        #print('Webserver: Websocket opened.')
+        # Message: [Rows, TargetPos, CarPos, [0 = ground, 1 = noWall, 2 = Wall, 4 = bigWall, 8 = Hotel (16 = car, 32 = passenger)], 
+        # 
+        # ]
+        message  = "+---------+\n"+"|R: | : :G|\n"+"| : | : : |\n"+"| : : : : |\n"+"| | : | : |\n"+"|Y| : |B: |\n"+"+---------+"
+
+        splitted = message.split("\n")
+        finalMsg = {}
+        PlayArea = []
+        alternatingBool = False
+        rows = 0
+        columns = 0
+        for x in splitted:
+
+            alternatingBool = False
+            rows += 1
+            columns = 0
+            for i in x:
+                columns += 1
+                if(i == " "):
+                    PlayArea.append(0)
+                elif(i == ":"):
+                    PlayArea.append(1)
+                elif(i == "|" or i =="+"):
+                    PlayArea.append(2)
+                elif(i == "-"):
+                    if(alternatingBool):
+                        alternatingBool = False
+                        PlayArea.append(2)
+                    else:
+                        alternatingBool = True
+                        PlayArea.append(4)
+                else:
+                    PlayArea.append(8)
+
+            print(1)
+
+        finalMsg["targetPos"]=25
+        finalMsg["passengerPos"]=12
+        finalMsg["carPos"]=14
+
+        finalMsg["area"] = PlayArea
+        finalMsg["rows"] = rows
+        finalMsg["columns"] = columns
+
+        self.write_message(tornado.escape.json_encode(finalMsg))
+        
+        #self.write_message('Server ready.')
 
     def on_message(self, msg):
         print('Webserver: Received WS message:', msg)
@@ -97,4 +143,4 @@ if __name__ == "__main__":
 
 
     print("Err: How did I get here?!")
-    t.join()
+    #t.join()
