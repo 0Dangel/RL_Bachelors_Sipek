@@ -1,9 +1,19 @@
-
-
-from lib.TaxiEnv import TaxiEnv
 import numpy as np
+import random
+import time
+from IPython.display import clear_output
+#import lib.TaxiEnv
+
+import gymnasium as gym
+import time
+from IPython.display import clear_output
+import numpy as np
+import random
+import seaborn as sns
+from lib.TaxiEnv import TaxiEnv
 
 env = TaxiEnv(True)
+
 
 ActionRow = []
 StatesRow = []
