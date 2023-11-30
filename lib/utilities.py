@@ -1,3 +1,7 @@
+from lib.TaxiEnv import TaxiEnv
+from IPython.display import clear_output
+from time import sleep
+
 def getInverseAction(action):
     if(action == 0):
         return 1    
@@ -8,3 +12,13 @@ def getInverseAction(action):
     if(action == 3):
         return 2
     return 1000
+
+
+def renderActions(stateList):
+    env = TaxiEnv()
+    for state in stateList:
+        env.setState(state)
+        clear_output()
+        env.printCurState()
+        sleep(0.42)
+    
