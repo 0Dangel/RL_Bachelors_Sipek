@@ -14,11 +14,25 @@ def getInverseAction(action):
     return 1000
 
 
-def renderActions(stateList):
+def renderStates(stateList, animSpeed = 0.42):
     env = TaxiEnv()
     for state in stateList:
         env.setState(state)
         clear_output()
         env.printCurState()
-        sleep(0.42)
+        sleep(animSpeed)
+
+
+
+def renderActions(actionList, startState, animSpeed = 0.42):
+    env = TaxiEnv()
+    env.setState(startState)
+    env.print = True
+    for action in actionList:
+        clear_output()
+        env.move(action)
+
+        #env.printCurState()
+        sleep(animSpeed)
+    
     
