@@ -16,6 +16,7 @@ class TaxiEnv:
         self.penalties = 0
         self.reward = 0
         self.print = print
+        self.allActionCount = self.env.action_space.n
 
     def getSize(self):
         return (self.env.observation_space.n, self.env.action_space.n)
@@ -40,7 +41,10 @@ class TaxiEnv:
     def getRandomMove(self):
         return self.env.action_space.sample()
 
-
+    #Intercompatibility method
+    def step(self,action):
+        return self.move(action)
+    
     def move(self,action):
         self.actionCount += 1
         (next_state, reward, done, info1, info2) = self.env.step(action)
