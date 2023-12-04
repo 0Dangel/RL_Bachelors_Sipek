@@ -60,9 +60,13 @@ class TaxiEnv:
         print(s)
 
     def setState(self,stateNum):
-        self.env.unwrapped.s = stateNum
+        pNum =self.env.P[stateNum]
+        #self.env.unwrapped.s = stateNum
         self.env.reset()
-        actionMask =self.env.unwrapped.action_mask(stateNum)
+        actionMask =self.env.action_mask(stateNum)
         self.lastState = (stateNum,{'prob' : 1.0,'action_mask':actionMask})
+        self.env.unwrapped.s = stateNum
+        
+
     def render(self):
         self.env.render()
