@@ -66,6 +66,7 @@ function onSocketMessage(message) {
         // const h = text.hasOwnProperty("mapData");
         if(text?.["mapData"]){     
             mapRenderer=document.getElementById("map");
+            mapRenderer.innerHTML = "";
             text = text["mapData"];
             //console.log(text)     
             arr=text["area"]
@@ -74,15 +75,16 @@ function onSocketMessage(message) {
             for (i = 0; i < text["rows"] ; i++){
                 for (j = 0; j < text["columns"]; j++){
                     elementQuery =""
-                    if(arr[index] == 0){elementQuery = '<img src="imgs/asphalt.png" width="32" height="32"';}
-                    else if (arr[index] == 1){elementQuery = '<img src="imgs/asphalt.png" width="8" height="32"' ;}
-                    else if (arr[index] == 2){elementQuery = '<img src="imgs/wall.png" width="8" height="32"' ;}
-                    else if (arr[index] == 4){elementQuery = '<img src="imgs/wall.png" width="32" height="32"' ;}
-                    else if (arr[index] == 8){elementQuery = '<img src="imgs/hotel.png" width="32" height="32"' ;}
-                    else {mapRenderer.innerHTML = "x"}
-                    colorRot = 0+ ( text["targetPos"] == index ? 10:0 ) + (text["carPos"] == index ? 30:0 ) + (text["targetPos"] == index ? 60:0);
-
-                    if(index == text["targetPos"] ||index == text["carPos"] || index == text["passengerPos"]) { elementQuery +=' style="filter:hue-rotate('+colorRot+' deg)"';}
+                    if(arr[index] == 0){elementQuery = '<img src="imgs/asphalt.png" class = "block" ';}
+                    else if (arr[index] == 1){elementQuery = '<img src="imgs/asphalt.png" class = "vypln" ' ;}
+                    else if (arr[index] == 2){elementQuery = '<img src="imgs/wall.png" class = "vypln" ' ;}
+                    else if (arr[index] == 4){elementQuery = '<img src="imgs/wall.png" class = "block" ' ;}
+                    else if (arr[index] == 8){elementQuery = '<img src="imgs/hotel.png" class = "block" ' ;}
+                    else {elementQuery = "x"}
+                    colorRot = 0x000000 | ( text["targetPos"] == index ? 0x0000FF:0 ) | (text["carPos"] == index ? 0xFFFF00:0 ) ^ (text["passengerPos"] == index ? 0xFF0000:0);
+                    //console.log(colorRot)
+                    if( text["targetPos"] == index ||text["carPos"] == index|| text["passengerPos"] == index ) { elementQuery +='style=" border: 5px solid #'+intToRGB(colorRot)+'; border-radius: 4px;"';
+                        console.log(elementQuery)}
                     else if (arr[index] == 8) {elementQuery +=' style="filter:grayscale(100%)"'}
 
                     elementQuery += ">";
@@ -105,7 +107,21 @@ function onSocketMessage(message) {
         console.log("message.data = " + text)
     }
 }
+function hashCode(str) { // java String#hashCode
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+       hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return hash;
+} 
 
+function intToRGB(i){
+    var c = (i & 0x00FFFFFF)
+        .toString(16)
+        .toUpperCase();
+
+    return "00000".substring(0, 6 - c.length) + c;
+}
 
 function getMessage(data){
 	if(!data.hasOwnProperty("message"))

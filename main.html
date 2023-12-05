@@ -10,7 +10,59 @@
 
 
     <title>Vizualizace algoritmů</title>
+
+
   </head>
+
+  <style>
+    .container {
+      position: relative;
+      width: 50%;
+    }
+    
+    .image {
+      opacity: 1;
+      width: 32px;
+      height: 32px;
+      transition: .5s ease;
+      backface-visibility: hidden;
+    }
+    .block {
+      opacity: 1;
+      width: 32px;
+      height: 32px;
+      transition: .5s ease;
+      backface-visibility: hidden;
+    }
+    .vypln{
+      opacity: 1;
+      width: 8px;
+      height: 32px;
+      transition: .5s ease;
+      backface-visibility: hidden;
+    }
+    
+    .middle {
+      transition: .5s ease;
+      opacity: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%)
+    }
+    
+    .container:hover .middle {
+      opacity: 1;
+    }
+    
+    .text {
+      background-color: #4CAF50;
+      color: white;
+      font-size: 10px;
+      padding: 1px 2px;
+    }
+    </style>
   <body onload="onBodyLoad()">
     Výstup
 </body>
