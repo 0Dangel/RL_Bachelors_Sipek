@@ -12,6 +12,8 @@ from tornado.ioloop import IOLoop
 import tornado
 import os
 from threading import Thread
+import tornado.escape as esc
+import json
 
 
 tornado.ioloop.IOLoop.configure("tornado.platform.asyncio.AsyncIOLoop")
@@ -138,12 +140,16 @@ class WSHandler(WebSocketHandler):
 
     #Ready handler for future control - e.g. changing the running version - BFS, DFS etc.
     def on_message(self, msg):
-
+        modelsList = ["model", "model2", "model3"]
+        print(msg)
+        #return
+        js = esc.json_decode(msg)
         #Needs to process the message
-        if(msg):
-            self.app.ws_clients()
+        if("loaded" in js):
+            #self.app.ws_clients("")
+            self.write_message(esc.json_encode({"modelList":modelsList}))
         elif(msg):
-            self.write_message(tornado.escape.json_encode(makeMessage(msg)))
+            self.write_message(esc.json_encode(makeMessage(msg)))
         print('Webserver: Received WS message:', msg)
         #If the message has propper format, go and render on client:
         

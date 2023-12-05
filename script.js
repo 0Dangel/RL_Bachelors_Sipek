@@ -3,6 +3,11 @@ function onSocketOpen() {
    
     mapRenderer=document.getElementById("map");
     console.log("WS client: Websocket opened.")
+
+    ws.send(JSON.stringify({
+        "loaded":"Notice me senpai ~UwU~",
+        "refresh":true
+    }))
 }
 
 function onBtnPress(){
@@ -11,6 +16,10 @@ function onBtnPress(){
     })
 }
 var mapRenderer;
+
+function makeSelectOption(input){
+    return "<option value='"+input.toLowerCase()+"'>" + input + "</option>"
+}
 
 function onBodyLoad() {
     //document.write('<head><script src = "./js/bootstrap.js"> </script>     <link rel="stylesheet" href="./css/bootstrap.css">    <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1">   <meta name="description" content="">   <script src="script.js" type="text/javascript"></script> </head>');
@@ -21,6 +30,8 @@ function onBodyLoad() {
     var controls = document.getElementById("controls"); 
     controls.innerHTML += "<label for = 'models'> Vyberte model: </label>"
     controls.innerHTML += "<select name='models' id='models'> </select>"
+    var selector = document.getElementById("models");
+    //selector.innerHTML += 
 
     //document.write(" <div  class = 'container' style='font-size:22px' id = 'textOutput'>  </div> ");
     //setInterval(fn60sec, 120 * 1000);
@@ -30,6 +41,7 @@ function onBodyLoad() {
     ws.onopen = onSocketOpen;
     ws.onmessage = onSocketMessage;
     ws.onclose = onSocketClose;    
+
     //ws.send
 }
 
@@ -58,7 +70,7 @@ function onSocketMessage(message) {
                     else {mapRenderer.innerHTML = "x"}
                     colorRot = 0+ ( text["targetPos"] == index ? 10:0 ) + (text["carPos"] == index ? 30:0 ) + (text["targetPos"] == index ? 60:0);
 
-                    if(index == text["targetPos"] ||index == text["carPos"] || index == text["passengerPos"]) { elementQuery +=' style="filter:hue-rotate('+colorRot+'deg)"';}
+                    if(index == text["targetPos"] ||index == text["carPos"] || index == text["passengerPos"]) { elementQuery +=' style="filter:hue-rotate('+colorRot+' deg)"';}
                     else if (arr[index] == 8) {elementQuery +=' style="filter:grayscale(100%)"'}
 
                     elementQuery += ">";
@@ -69,7 +81,11 @@ function onSocketMessage(message) {
             }    
         }
         else if(text?.["modelList"]){
-
+            var selector = document.getElementById("models");
+            selector.innerHTML = "";
+            text["modelList"].forEach(element => {
+                selector.innerHTML += makeSelectOption(element);
+            });
         }                              
     }
     catch (e){
