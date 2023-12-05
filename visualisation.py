@@ -61,6 +61,58 @@ class MainHandler(tornado.web.RequestHandler):
         #self.write("Hello, world")
         self.render("main.html")
 
+def makeMessage(message):
+    splitted = message.split("\n")
+    finalMsg = {}
+    PlayArea = []
+    alternatingBool = False
+    rows = 0
+    columns = 0
+    #For every row in input sequence:
+    for x in splitted:
+        #This is just because of dashes at the top and botom - it has to intertwine a large wall with a small one for correct looks
+        alternatingBool = False
+        #Counting number of rows and columns - yes, as of now map is considered a long text seaquence
+        rows += 1
+        columns = 0
+        #For ever char in the current line:
+        for i in x:
+            #Add a 1 to column counter 
+            columns += 1
+            #Conversion of chars into their numbered counterparts - i used binary progressing numbers - 1, 2, 4, 8 etc... 
+            # this way it's possible to expand in the future
+            if(i == " "):
+                PlayArea.append(0)
+            elif(i == ":"):
+                PlayArea.append(1)
+            elif(i == "|" or i =="+"):
+                PlayArea.append(2)
+            elif(i == "-"):
+                #Yeee... the upper and lower parts... hate them, but it works
+                if(alternatingBool):
+                    alternatingBool = False
+                    PlayArea.append(2)
+                else:
+                    alternatingBool = True
+                    PlayArea.append(4)
+            else:
+                PlayArea.append(8)
+
+        #print(1)
+
+    #These numbers will be changed based on the current enviroment - targets to be seen, indexes based on "id = row*columns + column" equation
+    finalMsg["targetPos"]=25
+    finalMsg["passengerPos"]=12
+    finalMsg["carPos"]=14
+
+    #Add the map and stats
+    finalMsg["area"] = PlayArea
+    finalMsg["rows"] = rows
+    finalMsg["columns"] = columns
+
+    return {"mapData":finalMsg}
+
+
 #All about Websocket
 class WSHandler(WebSocketHandler):
 
@@ -80,59 +132,21 @@ class WSHandler(WebSocketHandler):
         message  = "+---------+\n"+"|R: | : :G|\n"+"| : | : : |\n"+"| : : : : |\n"+"| | : | : |\n"+"|Y| : |B: |\n"+"+---------+"
 
         #Semi-Automatic conversion for all possible sizes
-        splitted = message.split("\n")
-        finalMsg = {}
-        PlayArea = []
-        alternatingBool = False
-        rows = 0
-        columns = 0
-        #For every row in input sequence:
-        for x in splitted:
-            #This is just because of dashes at the top and botom - it has to intertwine a large wall with a small one for correct looks
-            alternatingBool = False
-            #Counting number of rows and columns - yes, as of now map is considered a long text seaquence
-            rows += 1
-            columns = 0
-            #For ever char in the current line:
-            for i in x:
-                #Add a 1 to column counter 
-                columns += 1
-                #Conversion of chars into their numbered counterparts - i used binary progressing numbers - 1, 2, 4, 8 etc... 
-                # this way it's possible to expand in the future
-                if(i == " "):
-                    PlayArea.append(0)
-                elif(i == ":"):
-                    PlayArea.append(1)
-                elif(i == "|" or i =="+"):
-                    PlayArea.append(2)
-                elif(i == "-"):
-                    #Yeee... the upper and lower parts... hate them, but it works
-                    if(alternatingBool):
-                        alternatingBool = False
-                        PlayArea.append(2)
-                    else:
-                        alternatingBool = True
-                        PlayArea.append(4)
-                else:
-                    PlayArea.append(8)
-
-            #print(1)
-
-        #These numbers will be changed based on the current enviroment - targets to be seen, indexes based on "id = row*columns + column" equation
-        finalMsg["targetPos"]=25
-        finalMsg["passengerPos"]=12
-        finalMsg["carPos"]=14
-
-        #Add the map and stats
-        finalMsg["area"] = PlayArea
-        finalMsg["rows"] = rows
-        finalMsg["columns"] = columns
+        
         #Send the message, encode it as Json - pbbly unnecesary
-        self.write_message(tornado.escape.json_encode(finalMsg))
+        self.write_message("test")
 
     #Ready handler for future control - e.g. changing the running version - BFS, DFS etc.
     def on_message(self, msg):
+
+        #Needs to process the message
+        if(msg):
+            self.app.ws_clients()
+        elif(msg):
+            self.write_message(tornado.escape.json_encode(makeMessage(msg)))
         print('Webserver: Received WS message:', msg)
+        #If the message has propper format, go and render on client:
+        
 
     #It's good to say goodbye at the end of transmissions!
     def on_close(self):
