@@ -10,10 +10,14 @@ function onSocketOpen() {
     }))
 }
 
-function onBtnPress(){
-    ws.send({
-        command: 'BLS'
-    })
+function requestModelAndState(){
+    console.log( document.getElementById("startState").value);
+    ws.send(JSON.stringify({
+        "command": {
+            "model": document.getElementById("models").value,
+            "state": document.getElementById("startState").value
+        }
+    }))
 }
 var mapRenderer;
 
@@ -25,13 +29,18 @@ function onBodyLoad() {
     //document.write('<head><script src = "./js/bootstrap.js"> </script>     <link rel="stylesheet" href="./css/bootstrap.css">    <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1">   <meta name="description" content="">   <script src="script.js" type="text/javascript"></script> </head>');
     const body = document.querySelector("body");
     body.innerHTML = "";
-    body.innerHTML += "<div  class = 'container' style='font-size:22px' id = 'map'>  </div>";
     body.innerHTML += "<div class= 'container' style = 'font-size:22px' id = 'controls'></div>";
     var controls = document.getElementById("controls"); 
-    controls.innerHTML += "<label for = 'models'> Vyberte model: </label>"
-    controls.innerHTML += "<select name='models' id='models'> </select>"
-    var selector = document.getElementById("models");
+    controls.innerHTML += "<label for = 'models'> Vyberte model: </label>";
+    controls.innerHTML += "<select name='models' id='models'> </select> <br>";
+    
+    controls.innerHTML += "<label for = 'startState'> Počáteční stav: </label>";
+    controls.innerHTML += '<input type="text" id="startState" name="startState" value="0">';
+    controls.innerHTML += "<button onclick='requestModelAndState()' type='button'>Načti model</button>";
+    //var selector = document.getElementById("models");
     //selector.innerHTML += 
+
+    body.innerHTML += "<div  class = 'container' style='font-size:22px' id = 'map'>  </div>";
 
     //document.write(" <div  class = 'container' style='font-size:22px' id = 'textOutput'>  </div> ");
     //setInterval(fn60sec, 120 * 1000);
@@ -56,8 +65,11 @@ function onSocketMessage(message) {
         // const {mapData} = text;
         // const h = text.hasOwnProperty("mapData");
         if(text?.["mapData"]){     
-            text = text["mapData"]       
+            mapRenderer=document.getElementById("map");
+            text = text["mapData"];
+            //console.log(text)     
             arr=text["area"]
+            //console.log(arr[102]);
             index = 0
             for (i = 0; i < text["rows"] ; i++){
                 for (j = 0; j < text["columns"]; j++){

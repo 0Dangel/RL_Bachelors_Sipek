@@ -15,6 +15,9 @@ from threading import Thread
 import tornado.escape as esc
 import json
 
+#Enviroments:
+from lib.TaxiEnv import TaxiEnv
+
 
 tornado.ioloop.IOLoop.configure("tornado.platform.asyncio.AsyncIOLoop")
 io_loop = tornado.ioloop.IOLoop.current()
@@ -63,12 +66,13 @@ class MainHandler(tornado.web.RequestHandler):
         #self.write("Hello, world")
         self.render("main.html")
 
-def makeMessage(message):
-    splitted = message.split("\n")
+def makeMapMessage(message:str):
+    splitted = message.strip().split("\n")
     finalMsg = {}
     PlayArea = []
     alternatingBool = False
     rows = 0
+    addColumns = True
     columns = 0
     #For every row in input sequence:
     for x in splitted:
@@ -76,11 +80,12 @@ def makeMessage(message):
         alternatingBool = False
         #Counting number of rows and columns - yes, as of now map is considered a long text seaquence
         rows += 1
-        columns = 0
+        #columns = 0
         #For ever char in the current line:
         for i in x:
             #Add a 1 to column counter 
-            columns += 1
+            if(addColumns):
+                columns += 1
             #Conversion of chars into their numbered counterparts - i used binary progressing numbers - 1, 2, 4, 8 etc... 
             # this way it's possible to expand in the future
             if(i == " "):
@@ -97,9 +102,9 @@ def makeMessage(message):
                 else:
                     alternatingBool = True
                     PlayArea.append(4)
-            else:
+            elif(i in ["R","G","Y","B"]):
                 PlayArea.append(8)
-
+        addColumns = False
         #print(1)
 
     #These numbers will be changed based on the current enviroment - targets to be seen, indexes based on "id = row*columns + column" equation
@@ -140,16 +145,28 @@ class WSHandler(WebSocketHandler):
 
     #Ready handler for future control - e.g. changing the running version - BFS, DFS etc.
     def on_message(self, msg):
-        modelsList = ["model", "model2", "model3"]
+
         print(msg)
         #return
         js = esc.json_decode(msg)
         #Needs to process the message
         if("loaded" in js):
             #self.app.ws_clients("")
+            modelsList = ["model", "model2", "model3"]
+            #TODO: Load all avaliable models
             self.write_message(esc.json_encode({"modelList":modelsList}))
-        elif(msg):
-            self.write_message(esc.json_encode(makeMessage(msg)))
+        elif("command" in js):
+            command = js["command"]
+            #print(js["command"]["model"])
+            #TODO:Here goes PROPPER model selector
+            env = TaxiEnv()
+            if(str(command["state"]).isnumeric()):
+                env.setState(int(command["state"]))
+                x = env.render()
+                self.write_message(esc.json_encode(makeMapMessage(x)))
+                #print("loaded" + command)
+            #self.write_message(esc.json_encode({"loaded":command}))
+            #self.write_message(esc.json_encode(makeMessage(msg)))
         print('Webserver: Received WS message:', msg)
         #If the message has propper format, go and render on client:
         

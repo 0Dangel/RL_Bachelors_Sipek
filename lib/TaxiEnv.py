@@ -69,4 +69,4 @@ class TaxiEnv:
         
 
     def render(self):
-        self.env.render()
+        return self.env.render()
