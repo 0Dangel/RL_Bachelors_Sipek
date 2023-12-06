@@ -66,7 +66,9 @@ class MainHandler(tornado.web.RequestHandler):
         #self.write("Hello, world")
         self.render("main.html")
 
-def makeMapMessage(message:str):
+
+
+def makeMapMessage(message:str,statesOnly = False):
     print(esc.json_encode(message))
     message = message.replace("\u001b[0m","").replace("\u001b[34;1m","Z").replace("\u001b[43m","T").replace("\u001b[35m","X")
     #message = message.strip().replace(bcolors.ENDC,"X")
@@ -117,17 +119,18 @@ def makeMapMessage(message:str):
                 PlayArea.append(8+modifier)
                 modifier = 0
             elif(i == "T"):
-                modifier = 16
-                finalMsg["carPos"]=rows*columns + columns +1
+                modifier += 16
                 columns-=1
+                finalMsg["carPos"]=(rows-1)*allColumns + columns 
             elif(i == "Z"):
-                modifier = 32
-                finalMsg["passengerPos"]=rows*columns + columns +1
+                modifier += 32
                 columns-=1
+                finalMsg["passengerPos"]=(rows-1)*allColumns + columns 
             elif(i == "X"):
-                modifier = 64
-                finalMsg["targetPos"]=rows*columns + columns +1
+                modifier += 64
                 columns-=1
+                finalMsg["targetPos"]=(rows-1)*allColumns + columns 
+                
             #else:
                 #print(str(i), end="")
                 #print("[35m[0m")
@@ -136,6 +139,8 @@ def makeMapMessage(message:str):
             #     print(str(i))
         addColumns = False
         #print(1)
+    if(statesOnly):
+        return {"states" : {"targetPos":finalMsg["targetPos"],"passengerPos":finalMsg["passengerPos"],"carPos":finalMsg["carPos"]} }
 
     #These numbers will be changed based on the current enviroment - targets to be seen, indexes based on "id = row*columns + column" equation
     # finalMsg["targetPos"]=25
@@ -145,7 +150,7 @@ def makeMapMessage(message:str):
     #Add the map and stats
     finalMsg["area"] = PlayArea
     finalMsg["rows"] = rows
-    finalMsg["columns"] = columns
+    finalMsg["columns"] = allColumns
 
     return {"mapData":finalMsg}
 
@@ -153,10 +158,12 @@ def makeMapMessage(message:str):
 #All about Websocket
 class WSHandler(WebSocketHandler):
 
+
     #Innit a connection
     def initialize(self, app):
         self.app = app
         self.app.ws_clients.append(self)
+        self.env = TaxiEnv()
 
     #After opening a session, send this message:
     def open(self):
@@ -171,7 +178,7 @@ class WSHandler(WebSocketHandler):
         #Semi-Automatic conversion for all possible sizes
         
         #Send the message, encode it as Json - pbbly unnecesary
-        self.write_message("test")
+        #self.write_message("test")
 
 
 
@@ -183,20 +190,22 @@ class WSHandler(WebSocketHandler):
         #return
         js = esc.json_decode(msg)
         #Needs to process the message
+        print(js)
         if("loaded" in js):
             #self.app.ws_clients("")
             modelsList = ["model", "model2", "model3"]
             #TODO: Load all avaliable models
-            self.write_message(esc.json_encode({"modelList":modelsList}))
+            self.env.setState(int(0))
+            x = self.env.render()
+            self.write_message(esc.json_encode({"modelList":modelsList,"mapData":makeMapMessage(x)["mapData"]}))
         elif("command" in js):
             command = js["command"]
             #print(js["command"]["model"])
             #TODO:Here goes PROPPER model selector
-            env = TaxiEnv()
             if(str(command["state"]).isnumeric()):
-                env.setState(int(command["state"]))
-                x = env.render()
-                self.write_message(esc.json_encode(makeMapMessage(x)))
+                self.env.setState(int(command["state"]))
+                x = self.env.render()
+                self.write_message(esc.json_encode(makeMapMessage(x,True)))
                 #print("loaded" + command)
             #self.write_message(esc.json_encode({"loaded":command}))
             #self.write_message(esc.json_encode(makeMessage(msg)))

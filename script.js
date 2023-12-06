@@ -20,6 +20,7 @@ function requestModelAndState(){
     }))
 }
 var mapRenderer;
+var oldStates = [0,0,0];
 
 function makeSelectOption(input){
     return "<option value='"+input.toLowerCase()+"'>" + input + "</option>"
@@ -61,17 +62,20 @@ function onSocketMessage(message) {
     //here goes visualisation
     text = message.data;
     try {
-        text = JSON.parse(text);
+        jsonTxt = JSON.parse(text);
         // const {mapData} = text;
         // const h = text.hasOwnProperty("mapData");
-        if(text?.["mapData"]){     
+        if(jsonTxt?.["mapData"]){     
             mapRenderer=document.getElementById("map");
             mapRenderer.innerHTML = "";
-            text = text["mapData"];
+            text = jsonTxt["mapData"];
             //console.log(text)     
             arr=text["area"]
             //console.log(arr[102]);
             index = 0
+            oldStates[0] = text["targetPos"];
+            oldStates[1] = text["carPos"];
+            oldStates[2] = text["passengerPos"];
             for (i = 0; i < text["rows"] ; i++){
                 for (j = 0; j < text["columns"]; j++){
                     elementQuery =""
@@ -82,10 +86,13 @@ function onSocketMessage(message) {
                     else if ((arr[index] & 8) > 0){elementQuery = '<img src="imgs/hotel.png" class = "block" ' ;}
                     else {elementQuery = "x"}
 
+                    elementQuery+=" id='"+index+"'"
+
                     //TODO: Rewrite back to use "normal" indexes of positions 
                     colorRot = 0x000000 | ( (arr[index] & 64) > 0 ? 0x0000FF:0x0 ) | ((arr[index] & 16) > 0 ? 0xFFFF00:0x0 ) ^ ((arr[index] & 32) > 0 ? 0xFF0000:0x0);
                     //console.log(colorRot)
-                    if((arr[index] & 0b11110000) > 0) { elementQuery +='style=" border: 5px solid #'+intToRGB(colorRot)+'; border-radius: 4px;"';
+                    //if((arr[index] & 0b11110000) > 0) { elementQuery +='style=" border: 5px solid #'+intToRGB(colorRot)+'; border-radius: 4px;"';
+                    if( text["targetPos"] == index ||text["carPos"] == index|| text["passengerPos"] == index ) { elementQuery +='style=" border: 5px solid #'+intToRGB(colorRot)+'; border-radius: 4px;"';
                         console.log(elementQuery)}
                     else if (arr[index] == 8) {elementQuery +=' style="filter:grayscale(100%)"'}
 
@@ -96,13 +103,58 @@ function onSocketMessage(message) {
                 mapRenderer.innerHTML += "<br>"
             }    
         }
-        else if(text?.["modelList"]){
+        if(jsonTxt?.["modelList"]){
             var selector = document.getElementById("models");
             selector.innerHTML = "";
-            text["modelList"].forEach(element => {
+            jsonTxt["modelList"].forEach(element => {
                 selector.innerHTML += makeSelectOption(element);
             });
-        }                              
+        }
+        if(jsonTxt?.["states"]){
+            oldStates.forEach(element => {
+                byId = document.getElementById(element);
+                byId.style.removeProperty("border");
+                if(byId.src.includes("hotel")){
+                    byId.style.filter = "grayscale(100%)";
+                }
+            });
+            var selector = document.getElementById("models");
+            selector.innerHTML = "";
+            console.log(jsonTxt)
+            x = jsonTxt["states"]
+            count = 0;
+            colors= {}
+            Object.keys(x).forEach(element => {
+
+
+                byId = document.getElementById(x[element]);
+                byId.style.removeProperty("border");
+                if(byId.src.includes("hotel")){
+                    byId.style.filter = "";
+                }
+                oldStates[count] = x[element];
+                count ++;
+                console.log(colors)
+                if(!colors?.[x[element]]){colors[x[element]] = 0x000000}
+
+                if(element=="targetPos"){colors[x[element]] |= 0x0000FF}
+                else if(element=="passengerPos"){colors[x[element]] |= 0xFFFF00}
+                
+                else if(element=="carPos"){colors[x[element]] ^= 0xFF0000}
+                //console.log(""+x[element]);
+                //console.log(document.getElementById(""+x[element]));
+                //selector.innerHTML += makeSelectOption(element);
+            });
+
+            Object.keys(colors).forEach(element => {
+                document.getElementById(element).style.border = '5px solid';
+                document.getElementById(element).style.borderColor =  '#'+intToRGB(colors[element])
+                document.getElementById(element).style.borderRadius = '4px;';
+                console.log(element);
+                console.log(colors[element]) ;               
+            });
+            console.log(oldStates);
+        }                                   
     }
     catch (e){
         console.log("onSocketMessage Error" + e)
