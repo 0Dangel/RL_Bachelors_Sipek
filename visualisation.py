@@ -67,6 +67,9 @@ class MainHandler(tornado.web.RequestHandler):
         self.render("main.html")
 
 def makeMapMessage(message:str):
+    print(esc.json_encode(message))
+    message = message.replace("\u001b[0m","").replace("\u001b[34;1m","Z").replace("\u001b[43m","T").replace("\u001b[35m","X")
+    #message = message.strip().replace(bcolors.ENDC,"X")
     splitted = message.strip().split("\n")
     finalMsg = {}
     PlayArea = []
@@ -74,7 +77,9 @@ def makeMapMessage(message:str):
     rows = 0
     addColumns = True
     columns = 0
+    allColumns = 0
     #For every row in input sequence:
+    
     for x in splitted:
         #This is just because of dashes at the top and botom - it has to intertwine a large wall with a small one for correct looks
         alternatingBool = False
@@ -82,15 +87,18 @@ def makeMapMessage(message:str):
         rows += 1
         #columns = 0
         #For ever char in the current line:
+        print(str(x))
+        modifier = 0
+        columns = 0
         for i in x:
             #Add a 1 to column counter 
             if(addColumns):
-                columns += 1
+                allColumns += 1
+            columns += 1
             #Conversion of chars into their numbered counterparts - i used binary progressing numbers - 1, 2, 4, 8 etc... 
             # this way it's possible to expand in the future
-            if(i == " "):
-                PlayArea.append(0)
-            elif(i == ":"):
+
+            if(i == ":"):
                 PlayArea.append(1)
             elif(i == "|" or i =="+"):
                 PlayArea.append(2)
@@ -101,16 +109,38 @@ def makeMapMessage(message:str):
                     PlayArea.append(2)
                 else:
                     alternatingBool = True
-                    PlayArea.append(4)
+                    PlayArea.append(3)
+            elif(i == " "):
+                PlayArea.append(4+modifier)
+                modifier = 0
             elif(i in ["R","G","Y","B"]):
-                PlayArea.append(8)
+                PlayArea.append(8+modifier)
+                modifier = 0
+            elif(i == "T"):
+                modifier = 16
+                finalMsg["carPos"]=rows*columns + columns +1
+                columns-=1
+            elif(i == "Z"):
+                modifier = 32
+                finalMsg["passengerPos"]=rows*columns + columns +1
+                columns-=1
+            elif(i == "X"):
+                modifier = 64
+                finalMsg["targetPos"]=rows*columns + columns +1
+                columns-=1
+            #else:
+                #print(str(i), end="")
+                #print("[35m[0m")
+
+            # else:
+            #     print(str(i))
         addColumns = False
         #print(1)
 
     #These numbers will be changed based on the current enviroment - targets to be seen, indexes based on "id = row*columns + column" equation
-    finalMsg["targetPos"]=25
-    finalMsg["passengerPos"]=12
-    finalMsg["carPos"]=14
+    # finalMsg["targetPos"]=25
+    # finalMsg["passengerPos"]=12
+    # finalMsg["carPos"]=14
 
     #Add the map and stats
     finalMsg["area"] = PlayArea
@@ -143,6 +173,9 @@ class WSHandler(WebSocketHandler):
         #Send the message, encode it as Json - pbbly unnecesary
         self.write_message("test")
 
+
+
+    
     #Ready handler for future control - e.g. changing the running version - BFS, DFS etc.
     def on_message(self, msg):
 

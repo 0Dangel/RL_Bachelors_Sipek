@@ -75,15 +75,17 @@ function onSocketMessage(message) {
             for (i = 0; i < text["rows"] ; i++){
                 for (j = 0; j < text["columns"]; j++){
                     elementQuery =""
-                    if(arr[index] == 0){elementQuery = '<img src="imgs/asphalt.png" class = "block" ';}
+                    if((arr[index] & 4) > 0){elementQuery = '<img src="imgs/asphalt.png" class = "block" ';}
                     else if (arr[index] == 1){elementQuery = '<img src="imgs/asphalt.png" class = "vypln" ' ;}
                     else if (arr[index] == 2){elementQuery = '<img src="imgs/wall.png" class = "vypln" ' ;}
-                    else if (arr[index] == 4){elementQuery = '<img src="imgs/wall.png" class = "block" ' ;}
-                    else if (arr[index] == 8){elementQuery = '<img src="imgs/hotel.png" class = "block" ' ;}
+                    else if (arr[index] == 3){elementQuery = '<img src="imgs/wall.png" class = "block" ' ;}
+                    else if ((arr[index] & 8) > 0){elementQuery = '<img src="imgs/hotel.png" class = "block" ' ;}
                     else {elementQuery = "x"}
-                    colorRot = 0x000000 | ( text["targetPos"] == index ? 0x0000FF:0 ) | (text["carPos"] == index ? 0xFFFF00:0 ) ^ (text["passengerPos"] == index ? 0xFF0000:0);
+
+                    //TODO: Rewrite back to use "normal" indexes of positions 
+                    colorRot = 0x000000 | ( (arr[index] & 64) > 0 ? 0x0000FF:0x0 ) | ((arr[index] & 16) > 0 ? 0xFFFF00:0x0 ) ^ ((arr[index] & 32) > 0 ? 0xFF0000:0x0);
                     //console.log(colorRot)
-                    if( text["targetPos"] == index ||text["carPos"] == index|| text["passengerPos"] == index ) { elementQuery +='style=" border: 5px solid #'+intToRGB(colorRot)+'; border-radius: 4px;"';
+                    if((arr[index] & 0b11110000) > 0) { elementQuery +='style=" border: 5px solid #'+intToRGB(colorRot)+'; border-radius: 4px;"';
                         console.log(elementQuery)}
                     else if (arr[index] == 8) {elementQuery +=' style="filter:grayscale(100%)"'}
 
