@@ -17,6 +17,7 @@ class TaxiEnv:
         self.reward = 0
         self.print = print
         self.allActionCount = self.env.action_space.n
+        self.allStatesCount = 500
 
     def getSize(self):
         return (self.env.observation_space.n, self.env.action_space.n)
@@ -59,13 +60,17 @@ class TaxiEnv:
         s=self.env.render()
         print(s)
 
-    def setState(self,stateNum):
+    def setState(self,stateNum, returnVals = False):
         pNum =self.env.P[stateNum]
         #self.env.unwrapped.s = stateNum
         self.env.reset()
         actionMask =self.env.action_mask(stateNum)
         self.lastState = (stateNum,{'prob' : 1.0,'action_mask':actionMask})
         self.env.unwrapped.s = stateNum
+        
+        if(returnVals):
+            return [self.getLastState(), self.getLastActionMask()]
+        
         
 
     def render(self):
