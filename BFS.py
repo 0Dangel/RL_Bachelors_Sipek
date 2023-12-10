@@ -4,128 +4,79 @@ import numpy as np
 from time import time
 from lib.utilities import getInverseAction
 
-def bfs (env, start):
-    #WE don't want it to print while algo is running - huge slowdown
-    env.print = False
-    env.setState(start)
+def bfs (env, start, moreResults = False):
+    errStates = []
+    #for k in range(env.allStatesCount):
+    statesTisTurn = []
+    statesNextTurn = []
 
-    #Action hopper - Hopper1 is "current itteration", Hopper2 is "nextStep" 
-    actionHopper = []
-    actionHopper2 = []
+    statesTisTurn.append(start)
+    states = {}
+    genericMaskLen = len(env.getLastActionMask())
+    gotResult = False
+    goThrough = False
+    onBoard = False
+    done = False
 
-    #Just a basic "Been here before" paths pruning
-    states=[]
+    finalPath = []
+    #For every pre-fetched actions
+    while not gotResult:
+        #print(statesTisTurn)
+        #print("")
 
-
-    #First manual Itteration - needs to make main cycle more generic
-    startState = env.getLastState()
-    actionMask = env.getLastActionMask()
-    #print(actionMask)
-    #Whole path, states, costs and also actions
-    returnVal = []
-
-    akceId = 0
-    for i in actionMask:
-                #If action is possible:
-                if(i == 1):
-                    actionHopper.append((startState,akceId,0))
-                    states.append(startState)
-                    if(akceId >= 4):
-                        returnVal.append([startState,akceId,0,[]])
-                akceId += 1
-    col, row = env.getPos(startState)
-    #env.printCurState()
-    # print(actionHopper)
-
-    #Values used for return - "we got to the result" flag
-    dontReturn = True
-    #Basic heuristics - make sure we didn't ran into an infinite cycle
-    counter = 0
-
-    #Have we already solved it in first itter?
-    if(len(returnVal) == 0):
-        #While result doesn't exist and we still got some actions to do:
-        while (dontReturn and len(actionHopper) > 0):
-            #Check if we are not Too deep
-            if(counter > 15):
-                break
-            counter += 1
-            #For all actions in list:
-            for i in actionHopper:
-                    
-                    #Set the state from action
-                    try:
-                        env.setState(i[0])
-                    except Exception as e:
-                        # print(i)
-                        print(e)
-                        #print(actionHopper)
-                        #print(returnVal)
-                    #Make a move
-                    (next_state, reward, done, info1, info2) = env.move(i[1])
-                    #If we have already visited this state - go for next action
-                    if(next_state in states):
-                        continue
-
-                    #Check if we didn't put him in bad place
-                    if(reward == -10):
-                        break
-
-                    if(i[1]== 5):
-                        print("NOPE")
-                        #If last action was valid "put him down" - return result
-                        returnVal = [next_state,-1,i[2]+1,i]
-                        dontReturn = False
-                        break
-
-                    #Get possible actions of current state
-                    actionMask = info2["action_mask"]
-                    akceId = 0
-                    #For all possible actions:
-
-                    for j in actionMask:
-                        #If the action is possible
-                        if(j == 1):
-                            #If action is not reverse of the current one:
-                            #(we really don't want to go back - efficiency)
-                            if(akceId != getInverseAction(i[1])):
-                                #Append that action to the hopper
-                                actionHopper2.append([next_state,akceId,i[2]+1,i])
-                                #If the action is final - we got a target so return it
-                                if(akceId >= 4):
-                                    #This because we don't want to put the user back again right after pickup
-                                    if( i[1]!= 4):
-                                        #print(i[1])
-                                        if(akceId == 5):
-                                            #print(reward)
-                                            #dontReturn = False
-                                            returnVal = [next_state,akceId,i[2]+1,i]
-                                        #We got to the first or second target - reset old states
-                                        actionHopper2 = [actionHopper2[-1]]
-                                        states = []
-                                        #print(actionHopper2)
-                                        break
-                        akceId += 1
-                    #Mark this state as completed
-                    states.append(i[0])
-                    #Check if we should return something
-                    if(not dontReturn):
-                        break
-            actionHopper = actionHopper2
-            actionHopper2 = []
-
-    stateList = []
-    actionList = []
-    try:
-        next_state = returnVal       
-        while(True):
-            stateList.append(next_state[0])
-            actionList.append(next_state[1])
-            next_state = next_state[3]            
-    except :    
-        stateList.reverse()
-        actionList.reverse()
-    return stateList
-
+        while len(statesTisTurn) > 0:
         
-    #Indexy akcí: 0 - down, 1 - up, 2 - right, 3 - left, 4 - pick, 5 - put. 
+            i = statesTisTurn.pop(0)
+            #print(i,end=",")
+            state, actionMask = env.setState(i, True)
+            if not (state in states):
+                states[state] = [False,[]]
+            # For each action:
+            for actionId in range(genericMaskLen):        
+                #If action is not viable skip
+                if(actionMask[actionId]) == 0:
+                    continue
+                #Else :
+                #Set the previous state:
+                env.setState(i)
+                #Make a move
+                nxtState, rew, done ,_,_ = env.move(actionId)
+                #If the action was "pickup" - start from here next itteration
+                if(actionId == 4):
+                    statesTisTurn = []
+                    statesNextTurn = []
+                    onBoard = True
+                    #statesNextTurn = [nxtState]
+                #If I am done - return with the path
+                if(done):
+                    finalPath = states[state].copy()
+                    finalPath[1].append(state)
+                    finalPath[1].append(nxtState)
+                    gotResult = True
+                    break
+                #If we have the passenger onboard but the action doesn't make it "done" - end
+                elif(actionId == 5):
+                    continue
+                #If next state hasn't been checked - add an empty array
+                if not (nxtState in states):
+                    states[nxtState] = [False,[]]
+                    goThrough = True
+                #If the nextState hasn't been searched or shorter path has been found
+                if goThrough or onBoard != states[nxtState][0]  or (len(states[nxtState][1]) > len(states[state][1])+1 ) :
+                    goThrough = False
+                    #print(rew)
+                    states[nxtState][1] = states[state][1].copy()
+                    states[nxtState][1].append(state)
+                    states[nxtState][0] = onBoard
+                    statesNextTurn.append(nxtState)
+                #else:
+                    #print("Not updated - " + str(nxtState) + " from state " + str(state))
+        else:
+            #print("yes")
+            #break
+            statesTisTurn = statesNextTurn.copy()
+            #print(statesNextTurn)
+            statesNextTurn = []
+    if(moreResults):
+        return finalPath
+    return finalPath[1]     
