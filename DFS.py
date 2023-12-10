@@ -45,22 +45,16 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
             if not (state in states):
                 states[state] = [False,0,[]]
             #If we got to the max depth, end this turn
-
-            print("----------------")
-            print(states)
-            print(state)
             if(states[state][1] > maxDepth or states[state][1] > solDepth):
                 continue
             
             # For each action:
-            print(actionMask)
             for actionId in range(genericMaskLen):
                 actionId = 5 - actionId        
                 
                 #If action is not viable skip
                 if(actionMask[actionId]) == 0:
                     continue
-                print(actionId)
                 #Else :
                 #Set the previous state:
                 env.setState(i)
@@ -118,8 +112,6 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
             onBoard = True
             solDepth = float("inf")
             statesTisTurn = [pickupState]
-            print(states)
-            print(pickupState)
             states[pickupState][1] = 0
         stuckCounter += 1
 
