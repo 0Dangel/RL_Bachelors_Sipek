@@ -12,6 +12,7 @@ import random
 import seaborn as sns
 from lib.TaxiEnv import TaxiEnv
 
+
 def dfs (env, start, maxDepth = 15 ,moreResults = False):
     #for k in range(env.allStatesCount):
     statesTisTurn = []
@@ -45,21 +46,21 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
                 states[state] = [False,0,[]]
             #If we got to the max depth, end this turn
 
-            # print("----------------")
-            # print(states)
-            # print(state)
+            print("----------------")
+            print(states)
+            print(state)
             if(states[state][1] > maxDepth or states[state][1] > solDepth):
                 continue
             
             # For each action:
-            #print(actionMask)
+            print(actionMask)
             for actionId in range(genericMaskLen):
                 actionId = 5 - actionId        
                 
                 #If action is not viable skip
                 if(actionMask[actionId]) == 0:
                     continue
-                #print(actionId)
+                print(actionId)
                 #Else :
                 #Set the previous state:
                 env.setState(i)
@@ -85,10 +86,10 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
                     finalPath[2].append(state)
                     finalPath[2].append(nxtState)
                     gotResult = True
-                    if(moreResults):    
-                        return finalPath
-                    return finalPath[2]    
-                    #break
+                    # if(moreResults):    
+                    #     return finalPath
+                    # return finalPath[2]    
+                    break
                 #If we have the passenger onboard but the action doesn't make it "done" - end
                 elif(actionId == 5):
                     continue
@@ -108,6 +109,8 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
                 #else:
                     #print("Not updated - " + str(nxtState) + " from state " + str(state))
         else:
+            if(gotResult):
+                break
             #print("yes")
             #break
             #statesTisTurn = statesNextTurn.copy()
@@ -115,8 +118,8 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
             onBoard = True
             solDepth = float("inf")
             statesTisTurn = [pickupState]
-            # print(states)
-            # print(pickupState)
+            print(states)
+            print(pickupState)
             states[pickupState][1] = 0
         stuckCounter += 1
 
@@ -124,6 +127,7 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
     if(moreResults):    
         return finalPath
     return finalPath[2]               
+
 
 
 
