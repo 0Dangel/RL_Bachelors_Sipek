@@ -12,12 +12,9 @@ import random
 import seaborn as sns
 from lib.TaxiEnv import TaxiEnv
 
-
 def dfs (env, start, maxDepth = 15 ,moreResults = False):
-    errStates = []
     #for k in range(env.allStatesCount):
     statesTisTurn = []
-    statesNextTurn = []
 
     statesTisTurn.append(start)
     states = {}
@@ -26,12 +23,18 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
     goThrough = False
     onBoard = False
     done = False
-
-    finalPath = []
+    solDepth = float("inf")
+    finalPath = None
+    pickupState = [] 
+    stuckCounter = 0
     #For every pre-fetched actions
     while not gotResult:
         #print(statesTisTurn)
         #print("")
+
+        #If we are stuck in this cycle
+        if(stuckCounter > 3):
+            return finalPath
 
         while len(statesTisTurn) > 0:
         
@@ -41,13 +44,22 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
             if not (state in states):
                 states[state] = [False,0,[]]
             #If we got to the max depth, end this turn
-            if(states[state][1] > maxDepth):
+
+            # print("----------------")
+            # print(states)
+            # print(state)
+            if(states[state][1] > maxDepth or states[state][1] > solDepth):
                 continue
+            
             # For each action:
-            for actionId in range(genericMaskLen):        
+            #print(actionMask)
+            for actionId in range(genericMaskLen):
+                actionId = 5 - actionId        
+                
                 #If action is not viable skip
                 if(actionMask[actionId]) == 0:
                     continue
+                #print(actionId)
                 #Else :
                 #Set the previous state:
                 env.setState(i)
@@ -55,20 +67,28 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
                 nxtState, rew, done ,_,_ = env.move(actionId)
                 #If the action was "pickup" - start from here next itteration
                 if(actionId == 4):
-                    statesTisTurn = []
-                    statesNextTurn = []
+                    # statesTisTurn = []
+                    # statesNextTurn = []
+                    pickupState = nxtState
                     #Reset current Depth:
-                    states[state][1] = 0
-                    onBoard = True
+
+                    solDepth = states[state][1]+1
+                    #states[state][1] = 0
+                    
+                    #onBoard = True
                     #statesNextTurn = [nxtState]
                 #If I am done - return with the path
                 if(done):
                     #print(2)
+                    pickupState = nxtState
                     finalPath = states[state].copy()
                     finalPath[2].append(state)
                     finalPath[2].append(nxtState)
                     gotResult = True
-                    break
+                    if(moreResults):    
+                        return finalPath
+                    return finalPath[2]    
+                    #break
                 #If we have the passenger onboard but the action doesn't make it "done" - end
                 elif(actionId == 5):
                     continue
@@ -90,10 +110,18 @@ def dfs (env, start, maxDepth = 15 ,moreResults = False):
         else:
             #print("yes")
             #break
-            statesTisTurn = statesNextTurn.copy()
-            #print(statesNextTurn)
-            statesNextTurn = []
-    if(moreResults):
+            #statesTisTurn = statesNextTurn.copy()
+            #print(statesNextTurn)q
+            onBoard = True
+            solDepth = float("inf")
+            statesTisTurn = [pickupState]
+            # print(states)
+            # print(pickupState)
+            states[pickupState][1] = 0
+        stuckCounter += 1
+
+    
+    if(moreResults):    
         return finalPath
     return finalPath[2]               
 
